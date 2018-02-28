@@ -22,9 +22,9 @@ def sense(p, Z):
     for i in range(len(p)):
         hit = (Z == world[i])
         q.append(p[i] * (hit * pHit + (1-hit) * pMiss)) 
-    s = sum(q)
     
     # normalize
+    s = sum(q)
     for i in range(len(q)):
         q[i] = q[i] / s
     return q
