@@ -144,7 +144,7 @@ class matrix:
 def measurement_update(x, P, measurement):
     z = matrix([[measurement]])
     
-    y = z - (H * x)
+    y = z.transpose() - (H * x)
     S = H * P * H.transpose() + R
     K = P * H.transpose() * S.inverse()
     
