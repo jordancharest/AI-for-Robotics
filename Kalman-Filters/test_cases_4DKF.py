@@ -1,9 +1,3 @@
-# Fill in the matrices P, F, H, R and I at the bottom
-#
-# This question requires NO CODING, just fill in the 
-# matrices where indicated. Please do not delete or modify
-# any provided code OR comments. Good luck!
-
 from math import *
 
 class matrix:
