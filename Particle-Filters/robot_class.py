@@ -3,6 +3,9 @@
 from math import *
 import random
 
+world_size = 100.0
+landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
+
 
 class robot:
     def __init__(self):
