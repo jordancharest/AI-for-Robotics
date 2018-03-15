@@ -1,6 +1,9 @@
 import robot_class as rc
 import random
 from math import sqrt
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.animation import FuncAnimation
 
 world_size = 100.0
 landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
@@ -24,34 +27,67 @@ if __name__ == "__main__":
     N = 1000    # number of particles
     localizing_robot = rc.robot(world_size, landmarks)
     
+    
     # initialize N random particles
     particles = []
+    x_plot = []
+    y_plot = []
     for i in range(N):
-        x = rc.robot(world_size, landmarks)
+        part = rc.robot(world_size, landmarks)
         sensor_noise = 3.0 
-        x.set_noise(0.05, 0.05, sensor_noise)
-        particles.append(x)
+        part.set_noise(0.05, 0.05, sensor_noise)
+        particles.append(part)
+        x_plot.append(part.x)
+        y_plot.append(part.y)
+        
+    # Setup for plotting
+    robot_x = []
+    robot_y = []
+    robot_x.append(localizing_robot.x)
+    robot_y.append(localizing_robot.y)
+    landmarks_x = []
+    landmarks_y = []
+    for i in range(len(landmarks)):
+        landmarks_x.append(landmarks[i][0])
+        landmarks_y.append(landmarks[i][1])
+
+        
      
-    # simulate the robot moving about its environment until the solution converges
-    allowable = 0.3 * sensor_noise
-    mean_error = 100.0
     print('STARTING SIMULATION...\n Initial robot position: ', end='')
     print(localizing_robot)
     print('\nTimestep | Mean Error\n', end='')
     
     t = 0
+    allowable = 0.33 * sensor_noise
+    mean_error = 100.0
+    
+    # simulate the robot moving about its environment until the solution converges
     while mean_error > allowable:
         
         # Robot moves
-        turn_cmd = random.random() * 0.2
-        forward_cmd = random.random() * 8
+        forward_cmd = 1 + random.random() * 6
+        if (random.random() > 0.5):
+            turn_cmd = random.random() * 0.3
+        else:
+            turn_cmd = -random.random() * 0.3
+            
         
         localizing_robot = localizing_robot.move(turn_cmd, forward_cmd)
         Z = localizing_robot.sense()
         
-        # simulate that motion update for all N particles
+        # Plotting
+        robot_x.append(localizing_robot.x)
+        robot_y.append(localizing_robot.y)
+        
+        # simulate that same motion update for all N particles
         for i in range(N):
             particles[i] = particles[i].move(turn_cmd, forward_cmd)
+            
+            # Plotting
+            x_plot.append(particles[i].x)
+            y_plot.append(particles[i].y)
+            
+        
     
         # Calculate importance weights    
         weights = []
@@ -85,10 +121,33 @@ if __name__ == "__main__":
         t += 1
         
     print('Solution Converged\n')
+  
+  
+    
+# Animate the solution convergence
+    
+def update(frame):
+    plt.scatter(robot_x[frame], robot_y[frame], color='r', s=size*3)
+    
+    plot_particles['position'][:, 0] = x_plot[frame*N:frame*N+N]
+    plot_particles['position'][:, 1] = y_plot[frame*N:frame*N+N]
 
-        
-        
-        
+    scat.set_offsets(plot_particles['position'])
+    
+    return scat
+    
+    
+    
+  
+plot_particles = np.zeros(N, dtype=[('position', float, 2)])    
 
+fig = plt.figure()
+plt.xlim(0, world_size)
+plt.ylim(0, world_size)
 
+size = 20
+plt.scatter(landmarks_x, landmarks_y, color='k', s=size*8, marker='^')
+scat = plt.scatter(x_plot, y_plot, s=size)
 
+animation = FuncAnimation(fig, update, interval=N)
+plt.show()

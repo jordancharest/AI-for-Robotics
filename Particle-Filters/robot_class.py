@@ -1,14 +1,13 @@
 # Robot class definition and implementation
 
-from math import *
+from math import pi, sqrt, sin, cos, exp
 import random
 
-world_size = 100.0
-landmarks  = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
-
-
 class robot:
-    def __init__(self):
+    def __init__(self, world_size, landmarks):
+        self.world_size = world_size
+        self.landmarks = landmarks
+        
         self.x = random.random() * world_size
         self.y = random.random() * world_size
         self.orientation = random.random() * 2.0 * pi
@@ -17,9 +16,9 @@ class robot:
         self.sense_noise   = 0.0;
     
     def set(self, new_x, new_y, new_orientation):
-        if new_x < 0 or new_x >= world_size:
+        if new_x < 0 or new_x >= self.world_size:
             raise ValueError('X coordinate out of bound')
-        if new_y < 0 or new_y >= world_size:
+        if new_y < 0 or new_y >= self.world_size:
             raise ValueError('Y coordinate out of bound')
         if new_orientation < 0 or new_orientation >= 2 * pi:
             raise ValueError('Orientation must be in [0..2pi]')
@@ -38,8 +37,8 @@ class robot:
     
     def sense(self):
         Z = []
-        for i in range(len(landmarks)):
-            dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
+        for i in range(len(self.landmarks)):
+            dist = sqrt((self.x - self.landmarks[i][0]) ** 2 + (self.y - self.landmarks[i][1]) ** 2)
             dist += random.gauss(0.0, self.sense_noise)
             Z.append(dist)
         return Z
@@ -57,11 +56,11 @@ class robot:
         dist = float(forward) + random.gauss(0.0, self.forward_noise)
         x = self.x + (cos(orientation) * dist)
         y = self.y + (sin(orientation) * dist)
-        x %= world_size    # cyclic truncate
-        y %= world_size
+        x %= self.world_size    # cyclic truncate
+        y %= self.world_size
         
         # set particle
-        res = robot()
+        res = robot(self.world_size, self.landmarks)
         res.set(x, y, orientation)
         res.set_noise(self.forward_noise, self.turn_noise, self.sense_noise)
         return res
@@ -77,8 +76,8 @@ class robot:
         # calculates how likely a measurement should be
         
         prob = 1.0;
-        for i in range(len(landmarks)):
-            dist = sqrt((self.x - landmarks[i][0]) ** 2 + (self.y - landmarks[i][1]) ** 2)
+        for i in range(len(self.landmarks)):
+            dist = sqrt((self.x - self.landmarks[i][0]) ** 2 + (self.y - self.landmarks[i][1]) ** 2)
             prob *= self.Gaussian(dist, self.sense_noise, measurement[i])
         return prob
      
