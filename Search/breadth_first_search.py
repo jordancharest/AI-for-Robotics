@@ -1,5 +1,4 @@
 # ----------
-# 
 # Successful search() calls return a list
 # in the form of [optimal path length, row, col]
 #
@@ -23,14 +22,14 @@ delta_name = ['^', '<', 'v', '>']
 def search(grid,init,goal,cost):
 
     # inititate a closed grid the same size as the world grid
-    closed = [[0 for row in range(len(grid[0]))] for col in range(len(grid))]
+    closed = [[0 for col in range(len(grid[0]))] for row in range(len(grid))]
     closed[init[0]][init[1]] = 1
     
     # another grid to show when each node was explored
-    explored = [[-1 for row in range(len(grid[0]))] for col in range(len(grid))]
+    explored = [[-1 for col in range(len(grid[0]))] for row in range(len(grid))]
     
     # another grid to display the movement it took to the next node
-    move = [[-1 for row in range(len(grid[0]))] for col in range(len(grid))]
+    move = [[-1 for col in range(len(grid[0]))] for row in range(len(grid))]
     
     x = init[0]
     y = init[1]
