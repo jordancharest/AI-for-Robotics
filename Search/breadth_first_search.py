@@ -75,6 +75,7 @@ def search(grid,init,goal,cost):
         
     
     
+    # build the optimal path grid using the symbols in delta_name
     path = [[' ' for row in range(len(grid[0]))] for col in range(len(grid))]
     x = goal[0]
     y = goal[1]
