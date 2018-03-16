@@ -24,6 +24,10 @@ def search(grid,init,goal,cost):
 
     # inititate a closed grid the same size as the world grid
     closed = [[0 for row in range(len(grid[0]))] for col in range(len(grid))]
+    closed[init[0]][init[1]] = 1
+    
+    # another grid to show when each node was explored
+    explored = [[-1 for row in range(len(grid[0]))] for col in range(len(grid))]
     
     x = init[0]
     y = init[1]
@@ -31,6 +35,7 @@ def search(grid,init,goal,cost):
     
     open = [[g, x, y]]
 
+    step = 0
     # Breadth First Search* (choosing the element with the lowest cost rather than using a queue)
     while len(open) > 0:
         
@@ -41,8 +46,11 @@ def search(grid,init,goal,cost):
         x = next_node[1]
         y = next_node[2]
         
+        explored[x][y] = step
+        
         # if you found the goal you are done
         if x == goal[0] and y == goal[1]:
+            print(explored)
             return next_node
         
         else:   # check all four directions
@@ -57,6 +65,8 @@ def search(grid,init,goal,cost):
                         g2 = g + cost
                         open.append([g2, x2, y2])
                         closed[x2][y2] = 1
+                        
+        step += 1
         
         
     return 'fail'
