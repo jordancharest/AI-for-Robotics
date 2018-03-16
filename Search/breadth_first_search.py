@@ -29,6 +29,9 @@ def search(grid,init,goal,cost):
     # another grid to show when each node was explored
     explored = [[-1 for row in range(len(grid[0]))] for col in range(len(grid))]
     
+    # another grid to display the movement it took to the next node
+    move = [[-1 for row in range(len(grid[0]))] for col in range(len(grid))]
+    
     x = init[0]
     y = init[1]
     g = 0
@@ -36,6 +39,7 @@ def search(grid,init,goal,cost):
     open = [[g, x, y]]
 
     step = 0
+    found = False
     # Breadth First Search* (choosing the element with the lowest cost rather than using a queue)
     while len(open) > 0:
         
@@ -47,11 +51,13 @@ def search(grid,init,goal,cost):
         y = next_node[2]
         
         explored[x][y] = step
+        step += 1
         
         # if you found the goal you are done
         if x == goal[0] and y == goal[1]:
             print(explored)
-            return next_node
+            found = True
+            break
         
         else:   # check all four directions
             for i in range(len(delta)):
@@ -65,11 +71,27 @@ def search(grid,init,goal,cost):
                         g2 = g + cost
                         open.append([g2, x2, y2])
                         closed[x2][y2] = 1
-                        
-        step += 1
+                        move[x2][y2] = i
         
+    
+    
+    path = [[' ' for row in range(len(grid[0]))] for col in range(len(grid))]
+    x = goal[0]
+    y = goal[1]
+    path[x][y] = '*'
+    
+    while x != init[0] or y != init[1]:
+        x2 = x - delta[move[x][y]][0]
+        y2 = y - delta[move[x][y]][1]
+        path[x2][y2] = delta_name[move[x][y]]
+        x, y = x2, y2
         
-    return 'fail'
+    print(path)
+     
+    if found:
+        return next_node
+    else:
+        return 'fail'
         
         
 
