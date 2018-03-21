@@ -87,19 +87,63 @@ class Robot(object):
 
 
 
-def run(robot, tau, n=100, speed=1.0):
+def P_control(robot, p_gain, n=100, speed=1.0):
     x_trajectory = []
     y_trajectory = []
     x_trajectory.append(robot.x)
     y_trajectory.append(robot.y)
     
     for i in range(n):
-        crosstrack_error = robot.y  # desired trajectory is x-axis (so error is simply the robot's y value)
-        steering = -tau * crosstrack_error
+        CTE = robot.y  # crosstrack error; desired trajectory is x-axis (so error is simply the robot's y value)
+        steering = -p_gain * CTE
         robot.move(steering, speed)
         
         x_trajectory.append(robot.x)
         y_trajectory.append(robot.y)
+
+        
+
+    return x_trajectory, y_trajectory
+
+
+def PD_control(robot, p_gain, d_gain, n=100, speed=1.0):
+    x_trajectory = []
+    y_trajectory = []
+    x_trajectory.append(robot.x)
+    y_trajectory.append(robot.y)
+    
+    last_CTE = robot.y
+    
+    for i in range(n):
+        CTE = robot.y  # crosstrack error; desired trajectory is x-axis (so error is simply the robot's y value)
+        steering = -p_gain * CTE - d_gain * (CTE - last_CTE)
+        robot.move(steering, speed)
+        
+        x_trajectory.append(robot.x)
+        y_trajectory.append(robot.y)
+        last_CTE = CTE
+        
+
+    return x_trajectory, y_trajectory
+
+def PID_control(robot, p_gain, d_gain, i_gain, n=1000, speed=1.0):
+    x_trajectory = []
+    y_trajectory = []
+    x_trajectory.append(robot.x)
+    y_trajectory.append(robot.y)
+    
+    last_CTE = robot.y
+    error_sum = 0.0
+    
+    for i in range(n):
+        CTE = robot.y  # crosstrack error; desired trajectory is x-axis (so error is simply the robot's y value)
+        steering = -p_gain * CTE  -  d_gain * (CTE - last_CTE)  -  i_gain * error_sum 
+        robot.move(steering, speed)
+        
+        x_trajectory.append(robot.x)
+        y_trajectory.append(robot.y)
+        last_CTE = CTE
+        error_sum += CTE
         
 
     return x_trajectory, y_trajectory
@@ -108,11 +152,29 @@ if __name__ == "__main__":
     
     robot = Robot()
     robot.set(0.0, 1.0, 0.0)
-        
-    x_trajectory, y_trajectory = run(robot, 0.2)
+    #robot.set_steering_drift(10.0/180 * np.pi)
+    
+    # Test proportional control    
+    x_trajectory, y_trajectory = P_control(robot, 0.1)
     n = len(x_trajectory)
     
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8))
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 8))
     ax1.plot(x_trajectory, y_trajectory, 'g', label='P controller')
     ax1.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    
+    # Test proportional-derivative control
+    x_trajectory, y_trajectory = PD_control(robot, 0.1, 1.2)
+    n = len(x_trajectory)
+    
+    ax2.plot(x_trajectory, y_trajectory, 'g', label='PD controller')
+    ax2.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    
+    # Test proportional-integral-derivative control
+    x_trajectory, y_trajectory = PID_control(robot, 0.1, 3.0, 0.004)
+    n = len(x_trajectory)
+    
+    ax3.plot(x_trajectory, y_trajectory, 'g', label='PID controller')
+    ax3.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    
+    
     
