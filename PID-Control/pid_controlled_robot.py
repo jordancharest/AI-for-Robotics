@@ -126,7 +126,7 @@ def PD_control(robot, p_gain, d_gain, n=100, speed=1.0):
 
     return x_trajectory, y_trajectory
 
-def PID_control(robot, p_gain, d_gain, i_gain, n=1000, speed=1.0):
+def PID_control(robot, p_gain, d_gain, i_gain, n=100, speed=1.0):
     x_trajectory = []
     y_trajectory = []
     x_trajectory.append(robot.x)
@@ -137,13 +137,13 @@ def PID_control(robot, p_gain, d_gain, i_gain, n=1000, speed=1.0):
     
     for i in range(n):
         CTE = robot.y  # crosstrack error; desired trajectory is x-axis (so error is simply the robot's y value)
+        error_sum += robot.y
         steering = -p_gain * CTE  -  d_gain * (CTE - last_CTE)  -  i_gain * error_sum 
         robot.move(steering, speed)
         
         x_trajectory.append(robot.x)
         y_trajectory.append(robot.y)
         last_CTE = CTE
-        error_sum += CTE
         
 
     return x_trajectory, y_trajectory
@@ -161,8 +161,10 @@ if __name__ == "__main__":
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 8))
     ax1.plot(x_trajectory, y_trajectory, 'g', label='P controller')
     ax1.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+
     
     # Test proportional-derivative control
+    robot.set(0.0, 1.0, 0.0)
     x_trajectory, y_trajectory = PD_control(robot, 0.1, 1.2)
     n = len(x_trajectory)
     
@@ -170,7 +172,8 @@ if __name__ == "__main__":
     ax2.plot(x_trajectory, np.zeros(n), 'r', label='reference')
     
     # Test proportional-integral-derivative control
-    x_trajectory, y_trajectory = PID_control(robot, 0.1, 3.0, 0.004)
+    robot.set(0.0, 1.0, 0.0)
+    x_trajectory, y_trajectory = PID_control(robot, 0.2, 3.0, 0.01)
     n = len(x_trajectory)
     
     ax3.plot(x_trajectory, y_trajectory, 'g', label='PID controller')
