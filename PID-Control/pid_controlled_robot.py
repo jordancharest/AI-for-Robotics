@@ -1,4 +1,3 @@
-
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -84,7 +83,6 @@ class Robot(object):
         return '[x=%.5f y=%.5f orient=%.5f]' % (self.x, self.y, self.orientation)
 
 
-
 def reset_robot():
     """
     Resets the robot back to the initial position and drift.
@@ -93,7 +91,6 @@ def reset_robot():
     robot.set(0.0, 1.0, 0.0)
     robot.set_steering_drift(10.0 / 180.0 * np.pi)
     return robot
-
 
 
 def P_control(robot, p_gain, n=100, speed=1.0):
@@ -111,7 +108,6 @@ def P_control(robot, p_gain, n=100, speed=1.0):
         y_trajectory.append(robot.y)
 
         
-
     return x_trajectory, y_trajectory
 
 
@@ -134,6 +130,7 @@ def PD_control(robot, p_gain, d_gain, n=100, speed=1.0):
         
 
     return x_trajectory, y_trajectory
+
 
 def PID_control(robot, gains, n=100, speed=1.0):
     x_trajectory = []
@@ -195,7 +192,7 @@ def twiddle(tol=0.2):
                 # if we improved the error, increase update size for next loop and move to next parameter
                 if  error < best_error:
                     best_error = error
-                    updates[i] += 1.1
+                    updates[i] *= 1.1
                 
                 # if neither worked, then the step size is probably too large, decrease and try again next after the other parameters
                 else:
@@ -210,7 +207,7 @@ if __name__ == "__main__":
     
     robot = Robot()
     robot.set(0.0, 1.0, 0.0)
-    #robot.set_steering_drift(10.0/180 * np.pi)
+    robot.set_steering_drift(10.0/180 * np.pi)
     
     # Test proportional control    
     x_trajectory, y_trajectory = P_control(robot, 0.1)
@@ -228,6 +225,7 @@ if __name__ == "__main__":
     
     ax2.plot(x_trajectory, y_trajectory, 'g', label='PD controller')
     ax2.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    
     
     # Test proportional-integral-derivative control
     robot.set(0.0, 1.0, 0.0)
@@ -250,7 +248,3 @@ if __name__ == "__main__":
     
     ax4.plot(x_trajectory, y_trajectory, 'g', label='Twiddle PID controller')
     ax4.plot(x_trajectory, np.zeros(n), 'r', label='reference')
-    
-    
-    
-    
