@@ -85,6 +85,15 @@ class Robot(object):
 
 
 
+def reset_robot():
+    """
+    Resets the robot back to the initial position and drift.
+    """
+    robot = Robot()
+    robot.set(0.0, 1.0, 0.0)
+    robot.set_steering_drift(10.0 / 180.0 * np.pi)
+    return robot
+
 
 
 def P_control(robot, p_gain, n=100, speed=1.0):
@@ -126,16 +135,21 @@ def PD_control(robot, p_gain, d_gain, n=100, speed=1.0):
 
     return x_trajectory, y_trajectory
 
-def PID_control(robot, p_gain, d_gain, i_gain, n=100, speed=1.0):
+def PID_control(robot, gains, n=100, speed=1.0):
     x_trajectory = []
     y_trajectory = []
     x_trajectory.append(robot.x)
     y_trajectory.append(robot.y)
     
+    p_gain = gains[0]
+    d_gain = gains[1]
+    i_gain = gains[2]
+    
     last_CTE = robot.y
     error_sum = 0.0
+    err = 0.0
     
-    for i in range(n):
+    for i in range(n * 2):
         CTE = robot.y  # crosstrack error; desired trajectory is x-axis (so error is simply the robot's y value)
         error_sum += robot.y
         steering = -p_gain * CTE  -  d_gain * (CTE - last_CTE)  -  i_gain * error_sum 
@@ -145,8 +159,52 @@ def PID_control(robot, p_gain, d_gain, i_gain, n=100, speed=1.0):
         y_trajectory.append(robot.y)
         last_CTE = CTE
         
+        if i >= n:
+            err += CTE ** 2
+        
+    avg_error = err/n
+    return x_trajectory, y_trajectory, avg_error
 
-    return x_trajectory, y_trajectory
+
+# Coordinate Ascension - algorithm to find the optimal parameters
+def twiddle(tol=0.2): 
+    params = [0.0, 0.0, 0.0]
+    updates = [0.5, 1.0, 0.1]   # make educated guesses on the likely update size for better results
+    robot = reset_robot()
+    x_trajectory, y_trajectory, best_error = PID_control(robot, params)
+    
+    # we are finished when the updates across all parameters are very small (we are very close to the optimum)
+    while sum(updates) > tol:
+        for i in range(len(params)):
+            # increment the parameter and get the error
+            params[i] += updates[i]
+            robot = reset_robot()
+            x_trajectory, y_trajectory, error = PID_control(robot, params)
+            
+            # if we improved the error, increase update size for next loop and move to next parameter
+            if error < best_error:
+                best_error = error
+                updates[i] *= 1.1
+            
+            # if we didn't, try decreasing the parameter
+            else:
+                params[i] -= 2 * updates[i]
+                robot = reset_robot()
+                x_trajectory, y_trajectory, error = PID_control(robot, params)
+                
+                # if we improved the error, increase update size for next loop and move to next parameter
+                if  error < best_error:
+                    best_error = error
+                    updates[i] += 1.1
+                
+                # if neither worked, then the step size is probably too large, decrease and try again next after the other parameters
+                else:
+                    params[i] += updates[i]
+                    updates[i] *= 0.9
+                    
+    return params, best_error
+            
+
 
 if __name__ == "__main__":
     
@@ -158,7 +216,7 @@ if __name__ == "__main__":
     x_trajectory, y_trajectory = P_control(robot, 0.1)
     n = len(x_trajectory)
     
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 8))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8))
     ax1.plot(x_trajectory, y_trajectory, 'g', label='P controller')
     ax1.plot(x_trajectory, np.zeros(n), 'r', label='reference')
 
@@ -173,11 +231,26 @@ if __name__ == "__main__":
     
     # Test proportional-integral-derivative control
     robot.set(0.0, 1.0, 0.0)
-    x_trajectory, y_trajectory = PID_control(robot, 0.2, 3.0, 0.01)
+    gains = [0.2, 3.0, 0.01]
+    x_trajectory, y_trajectory, error = PID_control(robot, gains)
     n = len(x_trajectory)
     
+    fig, (ax3, ax4) = plt.subplots(2, 1, figsize=(8, 8))
     ax3.plot(x_trajectory, y_trajectory, 'g', label='PID controller')
     ax3.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    
+    
+    # optimize the controller gains
+    params, err = twiddle()
+    print("Final twiddle error = {}".format(err))
+    print('Optimal gain values: \n Proportional: {:.6}\n Derivative: {:.6}\n Integral: {:.6}'.format(params[0], params[1], params[2]))
+    robot = reset_robot()
+    x_trajectory, y_trajectory, err = PID_control(robot, params)
+    n = len(x_trajectory)
+    
+    ax4.plot(x_trajectory, y_trajectory, 'g', label='Twiddle PID controller')
+    ax4.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    
     
     
     
