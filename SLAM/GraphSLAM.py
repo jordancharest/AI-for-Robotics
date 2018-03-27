@@ -362,6 +362,7 @@ def robot_motion(initial_pos, move1, move2, Z0, Z1, Z2):
                      [0.0,  0.0, 0.0,  0.0],
                      [0.0, -1.0, 0.0,  1.0]])
     xi += matrix([[0],[-Z1], [0], [Z1]])
+    
     # Second Measurement
     Omega += matrix([[0.0, 0.0,  0.0,  0.0],
                      [0.0, 0.0,  0.0,  0.0],
