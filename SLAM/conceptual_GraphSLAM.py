@@ -1,16 +1,3 @@
-# -----------
-# User Instructions
-#
-# Write a function, doit, that takes as its input an
-# initial robot position, move1, and move2. This
-# function should compute the Omega and Xi matrices
-# discussed in lecture and should RETURN the mu vector
-# (which is the product of Omega.inverse() and Xi).
-#
-# Please enter your code at the bottom.
-
-
- 
 import numpy as np
 import random
 
@@ -366,9 +353,9 @@ def robot_motion(initial_pos, move1, move2, Z0, Z1, Z2):
     # Second Measurement
     Omega += matrix([[0.0, 0.0,  0.0,  0.0],
                      [0.0, 0.0,  0.0,  0.0],
-                     [0.0, 0.0,  1.0, -1.0],
-                     [0.0, 0.0, -1.0,  1.0]])
-    xi += matrix([[0],[0], [-Z2], [Z2]])
+                     [0.0, 0.0,  5.0, -5.0],
+                     [0.0, 0.0, -5.0,  5.0]])
+    xi += matrix([[0],[0], [5*-Z2], [5*Z2]])
     
     mu = Omega.inverse() * xi
     mu.show('Mu: ')
@@ -376,6 +363,4 @@ def robot_motion(initial_pos, move1, move2, Z0, Z1, Z2):
 
 
 if __name__ == "__main__":
-    robot_motion(-3, 5, 3, 10, 5, 2)
-
-
+    robot_motion(-3, 5, 3, 10, 5, 1)
