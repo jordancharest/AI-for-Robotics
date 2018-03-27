@@ -311,7 +311,7 @@ class matrix:
 
 
 """
-For the following example, you would call doit(-3, 5, 3):
+For the following example, you would call robot_motion(-3, 5, 3):
 3 robot positions
   initially: -3
   moves by 5
@@ -324,14 +324,57 @@ which should return a mu of:
  [2.0],
  [5.0]]
 """
-def doit(initial_pos, move1, move2):
-    #
-    #
-    # Add your code here.
-    #
-    #
+def robot_motion(initial_pos, move1, move2, Z0, Z1, Z2):
+    Omega = matrix()
+    Omega.zero(3)
+    Omega.value[0][0] = 1
+    xi = matrix([[initial_pos], [0], [0]])
+    
+    # First Move
+    Omega += matrix([[1.0, -1.0, 0.0],
+                     [-1.0, 1.0, 0.0],
+                     [0.0,  0.0, 0.0]])
+    xi += matrix([[-move1],[move1], [0]])
+    
+    # Second Move
+    Omega += matrix([[0.0, 0.0, 0.0],
+                     [0.0, 1.0, -1.0],
+                     [0.0, -1.0, 1.0]])
+    xi += matrix([[0],[-move2], [move2]])
+    
+    Omega.show('Omega: ')
+    xi.show('Xi: ')
+    
+    # Expand to accomodate Landmark measurement
+    xi = xi.expand(4,1, range(3), [0])
+    Omega = Omega.expand(4,4, range(3))
+    
+    # Initial Measurement
+    Omega += matrix([[1.0,  0.0, 0.0, -1.0],
+                     [0.0,  0.0, 0.0, 0.0],
+                     [0.0,  0.0, 0.0, 0.0],
+                     [-1.0, 0.0, 0.0, 1.0]])
+    xi += matrix([[-Z0],[0], [0], [Z0]])
+    
+    # First Measurement
+    Omega += matrix([[0.0,  0.0, 0.0,  0.0],
+                     [0.0,  1.0, 0.0, -1.0],
+                     [0.0,  0.0, 0.0,  0.0],
+                     [0.0, -1.0, 0.0,  1.0]])
+    xi += matrix([[0],[-Z1], [0], [Z1]])
+    # Second Measurement
+    Omega += matrix([[0.0, 0.0,  0.0,  0.0],
+                     [0.0, 0.0,  0.0,  0.0],
+                     [0.0, 0.0,  1.0, -1.0],
+                     [0.0, 0.0, -1.0,  1.0]])
+    xi += matrix([[0],[0], [-Z2], [Z2]])
+    
+    mu = Omega.inverse() * xi
+    mu.show('Mu: ')
     return mu
 
-doit(-3, 5, 3)
+
+if __name__ == "__main__":
+    robot_motion(-3, 5, 3, 10, 5, 2)
 
 
