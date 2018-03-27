@@ -225,7 +225,7 @@ class robot:
 
         self.x = float(new_x)
         self.y = float(new_y)
-        self.orientation = float(new_orientation) % (2.0 * pi)
+        self.orientation = float(new_orientation) % (2.0 * np.pi)
 
 
     # --------
@@ -249,7 +249,7 @@ class robot:
         for i in range(len(grid)):
             for j in range(len(grid[0])):
                 if grid[i][j] == 1:
-                    dist = sqrt((self.x - float(i)) ** 2 + 
+                    dist = np.sqrt((self.x - float(i)) ** 2 + 
                                 (self.y - float(j)) ** 2)
                     if dist < 0.5:
                         self.num_collisions += 1
@@ -257,7 +257,7 @@ class robot:
         return True
         
     def check_goal(self, goal, threshold = 1.0):
-        dist =  sqrt((float(goal[0]) - self.x) ** 2 + (float(goal[1]) - self.y) ** 2)
+        dist =  np.sqrt((float(goal[0]) - self.x) ** 2 + (float(goal[1]) - self.y) ** 2)
         return dist < threshold
         
     # --------
@@ -266,7 +266,7 @@ class robot:
     #    distance = total distance driven, most be non-negative
 
     def move(self, grid, steering, distance, 
-             tolerance = 0.001, max_steering_angle = pi / 4.0):
+             tolerance = 0.001, max_steering_angle = np.pi / 4.0):
 
         if steering > max_steering_angle:
             steering = max_steering_angle
@@ -291,26 +291,26 @@ class robot:
 
 
         # Execute motion
-        turn = tan(steering2) * distance2 / res.length
+        turn = np.tan(steering2) * distance2 / res.length
 
         if abs(turn) < tolerance:
 
             # approximate by straight line motion
 
-            res.x = self.x + (distance2 * cos(self.orientation))
-            res.y = self.y + (distance2 * sin(self.orientation))
-            res.orientation = (self.orientation + turn) % (2.0 * pi)
+            res.x = self.x + (distance2 * np.cos(self.orientation))
+            res.y = self.y + (distance2 * np.sin(self.orientation))
+            res.orientation = (self.orientation + turn) % (2.0 * np.pi)
 
         else:
 
             # approximate bicycle model for motion
 
             radius = distance2 / turn
-            cx = self.x - (sin(self.orientation) * radius)
-            cy = self.y + (cos(self.orientation) * radius)
-            res.orientation = (self.orientation + turn) % (2.0 * pi)
-            res.x = cx + (sin(res.orientation) * radius)
-            res.y = cy - (cos(res.orientation) * radius)
+            cx = self.x - (np.sin(self.orientation) * radius)
+            cy = self.y + (np.cos(self.orientation) * radius)
+            res.orientation = (self.orientation + turn) % (2.0 * np.pi)
+            res.x = cx + (np.sin(res.orientation) * radius)
+            res.y = cy - (np.cos(res.orientation) * radius)
 
         # check for collision
         # res.check_collision(grid)
