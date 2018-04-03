@@ -89,7 +89,18 @@ def plan(warehouse, dropzone, todo):
                 if stop:
                     break
         
-        # build the heuristic for a star
+        # TODO: build the heuristic for a star
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         #print('The current goal is box number', box_number, 'at location: (', goal[0], ',', goal[1], ')' )
         
         # reset the robot to the dropzone location
