@@ -45,6 +45,7 @@
 #
 # You may use our test function below, solution_check(),
 # to test your code for a variety of input parameters. 
+import numpy as np
 
 warehouse = [[ 1, 2, 3],
              [ 0, 0, 0],
@@ -64,8 +65,6 @@ delta = [[-1, 0], # go up
 # ------------------------------------------
 # plan - Returns cost to take all boxes in the todo list to dropzone
 #
-# ----------------------------------------
-# modify code below
 # ----------------------------------------
 def plan(warehouse, dropzone, todo):
     total_cost = 0
@@ -88,55 +87,40 @@ def plan(warehouse, dropzone, todo):
                     break
                 if stop:
                     break
-        
-        # TODO: build the heuristic for a star
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        #print('The current goal is box number', box_number, 'at location: (', goal[0], ',', goal[1], ')' )
-        
+ 
+              
         # reset the robot to the dropzone location
         x = dropzone[0]
         y = dropzone[1]
         cost = 0
-        best_cost = 9999
+        h = cost + np.sqrt((x - goal[0])**2 + (y - goal[1])**2)
     
-        open = [[cost, x, y]]
+        open = [[h, cost, x, y]]
         
 
-        # A*
-        #print('Robot is at: (',x,',',y,')')
+        # A* with heuristic computed on-the-fly
         found = False
         while len(open) > 0:
             motion_cost = 1 # reset motion cost for non-diagonal movements
             
-            # choose the node with the lowest cost
+            # choose the node with the lowest heuristic (h)
             open.sort()
             next_node = open.pop(0)
-            cost = next_node[0]
-            x = next_node[1]
-            y = next_node[2]
+            cost = next_node[1]
+            x = next_node[2]
+            y = next_node[3]
             
-            print('(',x,',',y,')')
+            # print('Exploring (',x,',',y,')  Cost:', cost)
             
             # even if you found the goal, continue searching for possible better route
-            if x == goal[0] and y == goal[1] and cost < best_cost:
-                best_cost = cost
+            if x == goal[0] and y == goal[1]:
                 found = True
                 warehouse[x][y] = 0 # free this space so we can move through it when searching for the next box
-                
+                break
             
             else:   # check all eight directions
                 for i in range(len(delta)):
-                    if i == 3:
+                    if i == 4:  # diagonal moves cost 1.5
                         motion_cost = 1.5
                         
                     x2 = x + delta[i][0]
@@ -147,12 +131,18 @@ def plan(warehouse, dropzone, todo):
                     if x2 >= 0 and x2 < len(warehouse) and y2 >= 0 and y2 < len(warehouse[0]):
                         if closed[x2][y2] == 0 and (warehouse[x2][y2] == 0 or warehouse[x2][y2] == box_number):
                             cost2 = cost + motion_cost
-                            open.append([cost2, x2, y2])
+                            
+                            # compute new heuristic on the fly - use Euclidean Distance
+                            h2 = cost2 + np.sqrt((x2 - goal[0])**2 + (y2 - goal[1])**2)
+                            
+                            open.append([h2, cost2, x2, y2])
                             closed[x2][y2] = 1
     
         # double the cost to include the trip back to the dropzone
-        print('Cost to reach box', box_number, 'was', (best_cost*2))
-        total_cost += (best_cost * 2)
+        # no need to search, the robot is reset to the dropzone location at each iteration
+        total_cost += (cost * 2)
+        
+        # print('Cost to reach box', box_number, 'was', (cost*2))
         
         
     if found:
