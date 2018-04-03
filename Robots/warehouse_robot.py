@@ -112,7 +112,7 @@ def plan(warehouse, dropzone, todo):
             
             # print('Exploring (',x,',',y,')  Cost:', cost)
             
-            # even if you found the goal, continue searching for possible better route
+            # if you found the goal, exit
             if x == goal[0] and y == goal[1]:
                 found = True
                 warehouse[x][y] = 0 # free this space so we can move through it when searching for the next box
