@@ -32,23 +32,6 @@
 # You may assume that in all warehouse maps, all boxes are
 # reachable from beginning (the robot is not boxed in).
 
-# -------------------
-# User Instructions
-#
-# Design a planner (any kind you like, so long as it works!)
-# in a function named plan() that takes as input three parameters: 
-# warehouse, dropzone, and todo. See parameter info below.
-#
-# Your function should RETURN the final, accumulated cost to do
-# all tasks in the todo list in the given order, which should
-# match with our answer. You may include print statements to show 
-# the optimum path, but that will have no effect on grading.
-#
-# Your solution must work for a variety of warehouse layouts and
-# any length of todo list.
-# 
-# Add your code at line 76.
-# 
 # --------------------
 # Parameter Info
 #
@@ -69,6 +52,15 @@ warehouse = [[ 1, 2, 3],
 dropzone = [2,0] 
 todo = [2, 1]
 
+delta = [[-1, 0], # go up
+         [ 0,-1], # go left
+         [ 1, 0], # go down
+         [ 0, 1], # go right
+         [-1,-1], # diagonal up-left
+         [ 1,-1], # diagonal down-left
+         [ 1, 1], # diagonal down-right
+         [-1, 1]] # diagonal up-right
+
 # ------------------------------------------
 # plan - Returns cost to take all boxes in the todo list to dropzone
 #
@@ -76,9 +68,86 @@ todo = [2, 1]
 # modify code below
 # ----------------------------------------
 def plan(warehouse, dropzone, todo):
-    cost = 0
+    total_cost = 0
+    goal = [0,0]
+
+    for box_number in todo:
+        
+        # reset the closed grid
+        closed = [[0 for col in range(len(warehouse[0]))] for row in range(len(warehouse))]
+        closed[dropzone[0]][dropzone[1]] = 1    # robot starts in the dropzone
+        
+        # figure out the coordinates of the box we are looking for
+        stop = False
+        for row in range(len(warehouse)):
+            for col in range(len(warehouse[row])):
+                if box_number == warehouse[row][col]:
+                    stop = True
+                    goal[0] = row
+                    goal[1] = col
+                    break
+                if stop:
+                    break
+        
+        # build the heuristic for a star
+        #print('The current goal is box number', box_number, 'at location: (', goal[0], ',', goal[1], ')' )
+        
+        # reset the robot to the dropzone location
+        x = dropzone[0]
+        y = dropzone[1]
+        cost = 0
+        best_cost = 9999
     
-    return cost
+        open = [[cost, x, y]]
+        
+
+        # A*
+        #print('Robot is at: (',x,',',y,')')
+        found = False
+        while len(open) > 0:
+            motion_cost = 1 # reset motion cost for non-diagonal movements
+            
+            # choose the node with the lowest cost
+            open.sort()
+            next_node = open.pop(0)
+            cost = next_node[0]
+            x = next_node[1]
+            y = next_node[2]
+            
+            print('(',x,',',y,')')
+            
+            # even if you found the goal, continue searching for possible better route
+            if x == goal[0] and y == goal[1] and cost < best_cost:
+                best_cost = cost
+                found = True
+                warehouse[x][y] = 0 # free this space so we can move through it when searching for the next box
+                
+            
+            else:   # check all eight directions
+                for i in range(len(delta)):
+                    if i == 3:
+                        motion_cost = 1.5
+                        
+                    x2 = x + delta[i][0]
+                    y2 = y + delta[i][1]
+                    
+                    # if it's a valid location, add it to the queue to be explored
+                    # and close it off in the 'closed' grid
+                    if x2 >= 0 and x2 < len(warehouse) and y2 >= 0 and y2 < len(warehouse[0]):
+                        if closed[x2][y2] == 0 and (warehouse[x2][y2] == 0 or warehouse[x2][y2] == box_number):
+                            cost2 = cost + motion_cost
+                            open.append([cost2, x2, y2])
+                            closed[x2][y2] = 1
+    
+        # double the cost to include the trip back to the dropzone
+        print('Cost to reach box', box_number, 'was', (best_cost*2))
+        total_cost += (best_cost * 2)
+        
+        
+    if found:
+        return total_cost
+    else:
+        return 'fail'
     
 ################# TESTING ##################
        
@@ -97,12 +166,12 @@ def solution_check(test, epsilon = 0.00001):
         user_cost = plan(test[0][i], test[1][i], test[2][i])
         true_cost = test[3][i]
         if abs(user_cost - true_cost) < epsilon:
-            print ("\nTest case", i+1, "passed!")
+            print ("Test case", i+1, "passed!\n")
             answer_list.append(1)
             correct_answers += 1
             #print "#############################################"
         else:
-            print ("\nTest case ", i+1, "unsuccessful. Your answer ", user_cost, "was not within ", epsilon, "of ", true_cost) 
+            print ("Test case ", i+1, "unsuccessful. Your answer ", user_cost, "was not within ", epsilon, "of ", true_cost, '\n') 
             answer_list.append(0)
     runtime =  time.clock() - start
     if runtime > 1:
@@ -114,6 +183,8 @@ def solution_check(test, epsilon = 0.00001):
     else:
         print ("\nYou passed", correct_answers, "of", len(answer_list), "test cases. Try to get them all!")
         return False
+    
+    
 #Testing environment
 # Test Case 1 
 warehouse1 = [[ 1, 2, 3],
@@ -156,6 +227,7 @@ testing_suite = [[warehouse1, warehouse2, warehouse3, warehouse4],
                  [true_cost1, true_cost2, true_cost3, true_cost4]]
 
 
-solution_check(testing_suite) #UNCOMMENT THIS LINE TO TEST YOUR CODE
+if __name__ == "__main__":
+    solution_check(testing_suite)
 
 
