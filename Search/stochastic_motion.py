@@ -1,27 +1,12 @@
 # --------------
 # USER INSTRUCTIONS
 #
-# Write a function called stochastic_value that 
+# stochastic_value 
 # returns two grids. The first grid, value, should 
 # contain the computed value of each cell as shown 
 # in the video. The second grid, policy, should 
 # contain the optimum policy for each cell.
 #
-# --------------
-# GRADING NOTES
-#
-# We will be calling your stochastic_value function
-# with several different grids and different values
-# of success_prob, collision_cost, and cost_step.
-# In order to be marked correct, your function must
-# RETURN (it does not have to print) two grids,
-# value and policy.
-#
-# When grading your value grid, we will compare the
-# value of each cell with the true value according
-# to this model. If your answer for each cell
-# is sufficiently close to the correct answer
-# (within 0.001), you will be marked as correct.
 
 delta = [[-1, 0 ], # go up
          [ 0, -1], # go left
@@ -30,9 +15,6 @@ delta = [[-1, 0 ], # go up
 
 delta_name = ['^', '<', 'v', '>'] # Use these when creating your policy grid.
 
-# ---------------------------------------------
-#  Modify the function stochastic_value below
-# ---------------------------------------------
 
 def stochastic_value(grid, goal, cost_step, collision_cost, success_prob):
     failure_prob = (1.0 - success_prob)/2.0 # Probability(stepping left) = prob(stepping right) = failure_prob
