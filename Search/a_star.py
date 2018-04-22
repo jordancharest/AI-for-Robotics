@@ -40,7 +40,8 @@ def a_star(grid, heuristic, init, goal, cost):
 
     step = 0
     found = False
-    # Breadth First Search* (choosing the element with the lowest cost rather than using a queue)
+    
+    # A*
     while len(open) > 0:
         
         # choose the node with the lowest cost (including heuristic)
